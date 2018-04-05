@@ -3,4 +3,12 @@
         <name>mapreduce.framework.name</name>
         <value>yarn</value>
     </property>
+    <property>
+    <name>hadoop.log.dir</name>
+    <value>/export/data/log/mapreduce</value>
+  </property>
+  <property>
+    <name>hadoop.job.history.location</name>
+    <value>/export/data/log/mapreduce/history</value>
+  </property>
 </configuration>

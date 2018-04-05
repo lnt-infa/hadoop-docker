@@ -3,4 +3,28 @@
         <name>dfs.replication</name>
         <value>1</value>
     </property>
+    <property>
+        <name>hadoop.log.dir</name>
+        <value>/export/log/hdfs</value>
+    </property>
+    <property>
+      <name>dfs.datanode.data.dir</name>
+      <value>/export/data/hdfs/dn</value>
+    </property>
+    <property>
+      <name>dfs.journalnode.edits.dir</name>
+      <value>/export/data/hdfs/journal</value>
+    </property>
+    <property>
+      <name>dfs.namenode.checkpoint.dir</name>
+      <value>/export/data/hdfs/namesecondary</value>
+    </property>
+    <property>
+      <name>dfs.namenode.name.dir</name>
+      <value>/export/data/hdfs/namenode</value>
+    </property>	
+    <property>
+      <name>dfs.namenode.checkpoint.edits.dir</name>
+      <value>${dfs.namenode.checkpoint.dir}</value>
+    </property>
 </configuration>

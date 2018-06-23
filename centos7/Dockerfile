@@ -3,10 +3,13 @@
 #   * pre-compiled version of hadoop native with openssl and snappy support 
 # docker build -t sequenceiq/hadoop .
 
-FROM sequenceiq/pam:centos-6.5
+FROM centos:7.4.1708
 MAINTAINER LNT
 
 USER root
+
+ARG HADOOP_VERSION
+ENV HADOOP_VERSION=${HADOOP_VERSION:-2.7.6}
 
 # install dev tools
 RUN yum clean all; \
@@ -23,9 +26,9 @@ RUN cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys
 
 
 # java
-RUN curl -LO 'http://download.oracle.com/otn-pub/java/jdk/8u162-b12/0da788060d494f5095bf8624735fa2f1/jdk-8u162-linux-x64.rpm' -H 'Cookie: oraclelicense=accept-securebackup-cookie'
-RUN rpm -i jdk-8u162-linux-x64.rpm
-RUN rm jdk-8u162-linux-x64.rpm
+RUN curl -LO 'http://download.oracle.com/otn-pub/java/jdk/8u171-b11/512cd62ec5174c3487ac17c61aaa89e8/jdk-8u171-linux-x64.rpm' -H 'Cookie: oraclelicense=accept-securebackup-cookie'
+RUN rpm -i jdk-8u171-linux-x64.rpm
+RUN rm jdk-8u171-linux-x64.rpm
 
 ENV JAVA_HOME /usr/java/default
 ENV PATH $PATH:$JAVA_HOME/bin
@@ -38,44 +41,42 @@ RUN rm /usr/bin/java && ln -s $JAVA_HOME/bin/java /usr/bin/java
 # hadoop
 RUN yum install -y snappy-devel openssl-devel zlib-devel
 
-RUN curl -s http://www.eu.apache.org/dist/hadoop/common/hadoop-2.7.5/hadoop-2.7.5.tar.gz | tar -xz -C /usr/local/
-RUN cd /usr/local && ln -s ./hadoop-2.7.5 hadoop
+RUN curl -s http://www.eu.apache.org/dist/hadoop/common/hadoop-${HADOOP_VERSION}/hadoop-${HADOOP_VERSION}.tar.gz | tar -xz -C /usr/local/
+RUN cd /usr/local && ln -s ./hadoop-${HADOOP_VERSION} hadoop
 
-COPY hadoop-native-64-2.7.5.tgz /tmp/hadoop-native-64-2.7.5.tgz
-RUN tar -xzf /tmp/hadoop-native-64-2.7.5.tgz -C /tmp
+COPY centos7/hadoop-native-64-${HADOOP_VERSION}.tgz /tmp/hadoop-native-64-${HADOOP_VERSION}.tgz
+RUN tar -xzf /tmp/hadoop-native-64-${HADOOP_VERSION}.tgz -C /tmp
 RUN rm -rf /usr/local/hadoop/lib/native && mv /tmp/native /usr/local/hadoop/lib
-
-
 
 ARG EXPORT_PREFIX=/export
 
-ENV HADOOP_PREFIX /usr/local/hadoop
-ENV HADOOP_COMMON_HOME /usr/local/hadoop
-ENV HADOOP_HDFS_HOME /usr/local/hadoop
-ENV HADOOP_MAPRED_HOME /usr/local/hadoop
-ENV HADOOP_YARN_HOME /usr/local/hadoop
-ENV HADOOP_CONF_DIR /usr/local/hadoop/etc/hadoop
-ENV YARN_CONF_DIR $HADOOP_PREFIX/etc/hadoop
-ENV HADOOP_LOG_DIR $EXPORT_PREFIX/log/hdfs
-ENV YARN_LOG_DIR $EXPORT_PREFIX/log/yarn
-ENV HADOOP_MAPRED_LOG_DIR $EXPORT_PREFIX/log/mapred
+ARG HADOOP_PREFIX=/usr/local/hadoop
+#ENV HADOOP_COMMON_HOME /usr/local/hadoop
+#ENV HADOOP_HDFS_HOME /usr/local/hadoop
+#ENV HADOOP_MAPRED_HOME /usr/local/hadoop
+#ENV HADOOP_YARN_HOME /usr/local/hadoop
+#ENV HADOOP_CONF_DIR /usr/local/hadoop/etc/hadoop
+#ENV YARN_CONF_DIR $HADOOP_PREFIX/etc/hadoop
+#ENV HADOOP_LOG_DIR $EXPORT_PREFIX/log/hdfs
+#ENV YARN_LOG_DIR $EXPORT_PREFIX/log/yarn
+#ENV HADOOP_MAPRED_LOG_DIR $EXPORT_PREFIX/log/mapred
 
-RUN sed -i '/^export JAVA_HOME/ s:.*:export JAVA_HOME=/usr/java/default\nexport HADOOP_PREFIX=/usr/local/hadoop\nexport HADOOP_HOME=/usr/local/hadoop\n:' $HADOOP_PREFIX/etc/hadoop/hadoop-env.sh
-RUN sed -i '/^export HADOOP_CONF_DIR/ s:.*:export HADOOP_CONF_DIR=/usr/local/hadoop/etc/hadoop/:' $HADOOP_PREFIX/etc/hadoop/hadoop-env.sh
+#RUN sed -i '/^export JAVA_HOME/ s:.*:export JAVA_HOME=/usr/java/default\nexport HADOOP_PREFIX=/usr/local/hadoop\nexport HADOOP_HOME=/usr/local/hadoop\n:' $HADOOP_PREFIX/etc/hadoop/hadoop-env.sh
+#RUN sed -i '/^export HADOOP_CONF_DIR/ s:.*:export HADOOP_CONF_DIR=/usr/local/hadoop/etc/hadoop/:' $HADOOP_PREFIX/etc/hadoop/hadoop-env.sh
 #RUN . $HADOOP_PREFIX/etc/hadoop/hadoop-env.sh
 
 #RUN mkdir $HADOOP_PREFIX/input
 #RUN cp $HADOOP_PREFIX/etc/hadoop/*.xml $HADOOP_PREFIX/input
 
 # pseudo distributed
-ADD core-site.xml.template $HADOOP_PREFIX/etc/hadoop/core-site.xml.template
+ADD files/hadoop-${HADOOP_VERSION}/core-site.xml.template $HADOOP_PREFIX/etc/hadoop/core-site.xml.template
 #RUN sed s/HOSTNAME/localhost/ /usr/local/hadoop/etc/hadoop/core-site.xml.template > /usr/local/hadoop/etc/hadoop/core-site.xml
-ADD hdfs-site.xml $HADOOP_PREFIX/etc/hadoop/hdfs-site.xml
+ADD files/hadoop-${HADOOP_VERSION}/hdfs-site.xml $HADOOP_PREFIX/etc/hadoop/hdfs-site.xml
 
-ADD mapred-site.xml $HADOOP_PREFIX/etc/hadoop/mapred-site.xml
-ADD yarn-site.xml.template $HADOOP_PREFIX/etc/hadoop/yarn-site.xml.template
+ADD files/hadoop-${HADOOP_VERSION}/mapred-site.xml $HADOOP_PREFIX/etc/hadoop/mapred-site.xml
+ADD files/hadoop-${HADOOP_VERSION}/yarn-site.xml.template $HADOOP_PREFIX/etc/hadoop/yarn-site.xml.template
 
-ADD ssh_config /root/.ssh/config
+ADD files/ssh_config /root/.ssh/config
 RUN chmod 600 /root/.ssh/config
 RUN chown root:root /root/.ssh/config
 
@@ -93,39 +94,35 @@ RUN ln -s /usr/local/hadoop/etc/hadoop /etc/hadoop/conf
 
 RUN for i in `ls -1 $HADOOP_PREFIX/bin/*  | grep -v cmd`; do ln -s $i /usr/bin/; done
 RUN for i in `ls -1 $HADOOP_PREFIX/sbin/*  | grep -v cmd`; do ln -s $i /usr/sbin/; done
-RUN for i in `ls -1 $HADOOP_PREFIX/libexec/*  | grep -v cmd`; do ln -s $i /usr/libexec/; done
-
-RUN echo "export JAVA_HOME=/usr/java/default" >> /etc/profile.d/hadoop-env.sh
+#RUN for i in `ls -1 $HADOOP_PREFIX/libexec/*  | grep -v cmd`; do ln -s $i /usr/libexec/; done
 
 RUN echo @hadoop	soft nproc unlimited >> /etc/security/limits.conf
 RUN echo @hadoop	hard nproc unlimited >> /etc/security/limits.conf
 
-RUN echo "export ZOO_LOG_DIR=$ZOO_LOG_DIR"  >> /etc/profile.d/hadoop-env.sh
-RUN echo "export HADOOP_LOG_DIR=$HADOOP_LOG_DIR" >> /etc/profile.d/hadoop-env.sh
-RUN echo "export YARN_LOG_DIR=$YARN_LOG_DIR" >> /etc/profile.d/hadoop-env.sh
-RUN echo "export HADOOP_MAPRED_LOG_DIR=$HADOOP_MAPRED_LOG_DIR" >> /etc/profile.d/hadoop-env.sh
+ADD files/hadoop-${HADOOP_VERSION}/hadoop-env.sh /etc/profile.d/hadoop-env.sh
+RUN sed -i '/^export JAVA_HOME/ s:.*:export JAVA_HOME=/usr/java/default:' /etc/profile.d/hadoop-env.sh
+RUN sed -i '/^export HADOOP_PREFIX/ s:.*:export HADOOP_PREFIX=/usr/local/hadoop:' /etc/profile.d/hadoop-env.sh
+RUN sed -i '/^export HADOOP_HOME/ s:.*:export HADOOP_HOME=/usr/local/hadoop\n:' /etc/profile.d/hadoop-env.sh
+RUN sed -i '/^export EXPORT_PREFIX/ s:.*:export EXPORT_PREFIX=/export\n:' /etc/profile.d/hadoop-env.sh
 
-RUN echo "export EXPORT_PREFIX=$EXPORT_PREFIX" >> /etc/profile.d/hadoop-env.sh
-RUN echo "export HADOOP_PREFIX=$HADOOP_PREFIX" >> /etc/profile.d/hadoop-env.sh
-RUN echo "export HADOOP_COMMON_HOME=\$HADOOP_PREFIX"  >> /etc/profile.d/hadoop-env.sh
-RUN echo "export HADOOP_HDFS_HOME=\$HADOOP_PREFIX"  >> /etc/profile.d/hadoop-env.sh
-RUN echo "export HADOOP_MAPRED_HOME=\$HADOOP_PREFIX"  >> /etc/profile.d/hadoop-env.sh
-RUN echo "export HADOOP_YARN_HOME=\$HADOOP_PREFIX"  >> /etc/profile.d/hadoop-env.sh
-RUN echo "export HADOOP_CONF_DIR=\$HADOOP_PREFIX/etc/hadoop"  >> /etc/profile.d/hadoop-env.sh
-RUN echo "export YARN_CONF_DIR=\$HADOOP_PREFIX/etc/hadoop"  >> /etc/profile.d/hadoop-env.sh
 
 RUN chmod 755 /etc/profile.d/hadoop-env.sh
 
-ADD bootstrap.sh /etc/bootstrap.sh
+RUN curl  -LO https://raw.githubusercontent.com/lnt-infa/docker-common-scripts/master/consulFunctions.sh && cp consulFunctions.sh /etc/consulFunctions.sh
+
+ADD centos7/bootstrap.sh /etc/bootstrap.sh
 RUN chown root:root /etc/bootstrap.sh
 RUN chmod 700 /etc/bootstrap.sh
+
+ADD centos7/build-native.sh /etc/build-native.sh
+RUN chmod 700 /etc/build-native.sh
 
 ENV BOOTSTRAP /etc/bootstrap.sh
 
 # workingaround docker.io build error
-RUN ls -la /usr/local/hadoop/etc/hadoop/*-env.sh
+#RUN ls -la /usr/local/hadoop/etc/hadoop/*-env.sh
 RUN chmod +x /usr/local/hadoop/etc/hadoop/*-env.sh
-RUN ls -la /usr/local/hadoop/etc/hadoop/*-env.sh
+#RUN ls -la /usr/local/hadoop/etc/hadoop/*-env.sh
 
 
 CMD ["/etc/bootstrap.sh", "-d"]

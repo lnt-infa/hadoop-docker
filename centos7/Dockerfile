@@ -44,7 +44,8 @@ RUN yum install -y snappy-devel openssl-devel zlib-devel
 RUN curl -s http://www.eu.apache.org/dist/hadoop/common/hadoop-${HADOOP_VERSION}/hadoop-${HADOOP_VERSION}.tar.gz | tar -xz -C /usr/local/
 RUN cd /usr/local && ln -s ./hadoop-${HADOOP_VERSION} hadoop
 
-COPY centos7/hadoop-native-64-${HADOOP_VERSION}.tgz /tmp/hadoop-native-64-${HADOOP_VERSION}.tgz
+#COPY centos7/hadoop-native-64-${HADOOP_VERSION}.tgz /tmp/hadoop-native-64-${HADOOP_VERSION}.tgz
+RUN curl -LO https://github.com/lnt-infa/hadoop-docker/raw/master/centos7/hadoop-native-64-${HADOOP_VERSION}.tgz && mv hadoop-native-64-${HADOOP_VERSION}.tgz /tmp/
 RUN tar -xzf /tmp/hadoop-native-64-${HADOOP_VERSION}.tgz -C /tmp
 RUN rm -rf /usr/local/hadoop/lib/native && mv /tmp/native /usr/local/hadoop/lib
 
@@ -133,3 +134,4 @@ EXPOSE 50010 50020 50070 50075 50090 8020 9000
 EXPOSE 10020 19888
 #Yarn ports
 EXPOSE 8030 8031 8032 8033 8040 8042 8088
+

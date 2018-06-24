@@ -1,9 +1,11 @@
 #!/bin/sh
 
+OS=centos7
+
 usage() {
   cat << EOF
 
-Usage: $0 -o {centos6|centos7} -v x.y.z
+Usage: $0 -v x.y.z
 
 EOF
   exit 0
@@ -17,7 +19,7 @@ if [ "$#" -eq 0 ]; then
   usage;
 fi
 
-while getopts "h:o:v:" optname; do
+while getopts "h:v:" optname; do
   case "$optname" in
     "h")
       usage

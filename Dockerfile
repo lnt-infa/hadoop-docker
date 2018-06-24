@@ -45,7 +45,7 @@ RUN curl -s http://www.eu.apache.org/dist/hadoop/common/hadoop-${HADOOP_VERSION}
 RUN cd /usr/local && ln -s ./hadoop-${HADOOP_VERSION} hadoop
 
 #COPY centos7/hadoop-native-64-${HADOOP_VERSION}.tgz /tmp/hadoop-native-64-${HADOOP_VERSION}.tgz
-RUN curl -LO https://github.com/lnt-infa/hadoop-docker/raw/master/centos7/hadoop-native-64-${HADOOP_VERSION}.tgz && mv hadoop-native-64-${HADOOP_VERSION}.tgz /tmp/
+RUN curl -LO https://github.com/lnt-infa/hadoop-docker/raw/master/files/centos7/hadoop-native-64-${HADOOP_VERSION}.tgz && mv hadoop-native-64-${HADOOP_VERSION}.tgz /tmp/
 RUN tar -xzf /tmp/hadoop-native-64-${HADOOP_VERSION}.tgz -C /tmp
 RUN rm -rf /usr/local/hadoop/lib/native && mv /tmp/native /usr/local/hadoop/lib
 
@@ -111,11 +111,11 @@ RUN chmod 755 /etc/profile.d/hadoop-env.sh
 
 RUN curl  -LO https://raw.githubusercontent.com/lnt-infa/docker-common-scripts/master/consulFunctions.sh && cp consulFunctions.sh /etc/consulFunctions.sh
 
-ADD centos7/bootstrap.sh /etc/bootstrap.sh
+ADD files/centos7/bootstrap.sh /etc/bootstrap.sh
 RUN chown root:root /etc/bootstrap.sh
 RUN chmod 700 /etc/bootstrap.sh
 
-ADD centos7/build-native.sh /etc/build-native.sh
+ADD files/centos7/build-native.sh /etc/build-native.sh
 RUN chmod 700 /etc/build-native.sh
 
 ENV BOOTSTRAP /etc/bootstrap.sh

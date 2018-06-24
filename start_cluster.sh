@@ -7,7 +7,7 @@ DNS_HOST=172.17.0.2
 WORKERS="hdp2 hdp3 hdp4"
 MASTER="hdp1"
 SLAVES_FILE=${PWD}/slaves.tmp
-DOCKER_IMAGE=lntinfa/hadoop-docker:$OS-$HADOOP_VERSION
+DOCKER_IMAGE=lntinfa/hadoop-docker:$HADOOP_VERSION
 DATA_DIR=/home/docker-data/data
 
 rm ${SLAVES_FILE}

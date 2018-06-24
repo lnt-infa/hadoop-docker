@@ -3,4 +3,4 @@
 . ./common.sh
 
 
-docker build -f $OS/Dockerfile --build-arg HADOOP_VERSION=${HADOOP_VERSION} -t lntinfa/hadoop-docker:$OS-$HADOOP_VERSION .
+docker build -f Dockerfile --build-arg HADOOP_VERSION=${HADOOP_VERSION} -t lntinfa/hadoop-docker:$HADOOP_VERSION .

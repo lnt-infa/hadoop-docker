@@ -5,7 +5,7 @@
 DOMAIN=node.lyon.infa.co
 DNS_HOST=172.17.0.2
 MASTER="hdp1"
-DOCKER_IMAGE=lntinfa/hadoop-docker:$OS-$HADOOP_VERSION
+DOCKER_IMAGE=lntinfa/hadoop-docker:$HADOOP_VERSION
 DATA_DIR=/home/docker-data/data
 
 
